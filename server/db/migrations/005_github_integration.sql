@@ -71,3 +71,4 @@ CROSS JOIN LATERAL (
   FROM tasks t
   WHERE t.project_id = p.id
 ) tk;
+

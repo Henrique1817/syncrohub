@@ -82,6 +82,7 @@ function CreateProjectForm() {
   const previewGitHub = usePreviewGitHubRepo();
 
   const [repoInput, setRepoInput] = useState('');
+  const [repoToken, setRepoToken] = useState('');
   const [githubRepo, setGithubRepo] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
   const [githubDefaultBranch, setGithubDefaultBranch] = useState('');
@@ -105,7 +106,7 @@ function CreateProjectForm() {
     const trimmed = repoInput.trim();
     if (!trimmed) return;
     previewGitHub.mutate(
-      { repo: trimmed },
+      { repo: trimmed, token: repoToken.trim() || undefined },
       {
         onSuccess: (repo) => {
           setName(repo.name);
@@ -131,6 +132,7 @@ function CreateProjectForm() {
         githubRepo: githubRepo || undefined,
         githubUrl: githubUrl || undefined,
         githubDefaultBranch: githubDefaultBranch || undefined,
+        githubToken: repoToken.trim() || undefined,
         stages: stages.map((d) => ({
           title: d.title.trim(),
           description: d.description.trim() || undefined,
@@ -185,6 +187,13 @@ function CreateProjectForm() {
               {previewGitHub.isPending ? 'Buscando…' : 'Buscar'}
             </Button>
           </div>
+          <input
+            type="password"
+            value={repoToken}
+            onChange={(e) => setRepoToken(e.target.value)}
+            placeholder="Token GitHub (PAT) — opcional, apenas para repositórios privados"
+            className={cn(inputClass, 'mt-2 text-xs')}
+          />
           <p className="mt-1.5 text-[11px] text-zinc-500">
             Preenche nome, repositório e descrição (README) automaticamente.
           </p>
@@ -325,6 +334,8 @@ function EditProjectForm({ project }: { project: ProjectDetail }) {
   const [status, setStatus] = useState<ProjectStatus>(project.status);
   const [dueDate, setDueDate] = useState(project.dueDate ?? '');
   const [repoInput, setRepoInput] = useState(project.githubRepo ?? '');
+  const [repoToken, setRepoToken] = useState('');
+  const [clearToken, setClearToken] = useState(false);
   const [githubRepo, setGithubRepo] = useState(project.githubRepo ?? '');
   const [githubUrl, setGithubUrl] = useState(project.githubUrl ?? '');
   const [githubDefaultBranch, setGithubDefaultBranch] = useState(project.githubDefaultBranch ?? '');
@@ -333,13 +344,14 @@ function EditProjectForm({ project }: { project: ProjectDetail }) {
     const trimmed = repoInput.trim();
     if (!trimmed) return;
     previewGitHub.mutate(
-      { repo: trimmed },
+      { repo: trimmed, token: repoToken.trim() || undefined },
       {
         onSuccess: (repo) => {
           setGithubRepo(repo.githubRepo);
           setGithubUrl(repo.githubUrl);
           setGithubDefaultBranch(repo.defaultBranch);
           setRepoInput(repo.githubRepo);
+          setClearToken(false);
           if (!description.trim() && repo.description) setDescription(repo.description);
           toast('Repositório encontrado', `${repo.githubRepo} (${repo.defaultBranch}). Salve para concluir.`);
         },
@@ -352,6 +364,8 @@ function EditProjectForm({ project }: { project: ProjectDetail }) {
     setGithubUrl('');
     setGithubDefaultBranch('');
     setRepoInput('');
+    setRepoToken('');
+    setClearToken(true);
   };
 
   // PATCH exige ao menos um campo: enviamos só o que mudou.
@@ -365,6 +379,11 @@ function EditProjectForm({ project }: { project: ProjectDetail }) {
     ...(githubDefaultBranch !== (project.githubDefaultBranch ?? '') && {
       githubDefaultBranch: githubDefaultBranch || null,
     }),
+    ...(repoToken.trim()
+      ? { githubToken: repoToken.trim() }
+      : clearToken && project.hasGithubToken
+        ? { githubToken: null }
+        : {}),
   };
   const hasChanges = Object.keys(patch).length > 0;
   const canSubmit = name.trim().length >= 3 && hasChanges && !update.isPending;
@@ -420,6 +439,20 @@ function EditProjectForm({ project }: { project: ProjectDetail }) {
               {previewGitHub.isPending ? 'Buscando…' : githubRepo ? 'Trocar' : 'Conectar'}
             </Button>
           </div>
+          <input
+            type="password"
+            value={repoToken}
+            onChange={(e) => {
+              setRepoToken(e.target.value);
+              if (e.target.value) setClearToken(false);
+            }}
+            placeholder={
+              project.hasGithubToken && !clearToken
+                ? '•••••••• (token salvo — preencha para substituir)'
+                : 'Token GitHub (PAT) — opcional, apenas para repositórios privados'
+            }
+            className={cn(inputClass, 'mt-2 text-xs')}
+          />
           {githubRepo ? (
             <p className="mt-1.5 text-[11px] text-emerald-700">
               Conectado a <span className="font-medium">{githubRepo}</span> ({githubDefaultBranch || 'main'})

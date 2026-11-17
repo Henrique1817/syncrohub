@@ -24,3 +24,4 @@ export const webhook: RequestHandler = async (req, res) => {
 
   res.json({ data: await githubService.handleGitHubWebhook(rawBody, signature, event, req.body) });
 };
+

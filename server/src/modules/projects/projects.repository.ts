@@ -12,12 +12,24 @@ const PROJECT_COLUMNS = `
   github_url            AS "githubUrl",
   github_default_branch AS "githubDefaultBranch",
   github_last_synced_at AS "githubLastSyncedAt",
+  (github_token IS NOT NULL) AS "hasGithubToken",
   created_by            AS "createdBy",
   created_at            AS "createdAt",
   updated_at            AS "updatedAt"`;
 
 const OVERVIEW_SELECT = `
-  SELECT ${PROJECT_COLUMNS},
+  SELECT id, name, description, status,
+         progress_percentage   AS "progressPercentage",
+         due_date              AS "dueDate",
+         archived_at           AS "archivedAt",
+         github_repo           AS "githubRepo",
+         github_url            AS "githubUrl",
+         github_default_branch AS "githubDefaultBranch",
+         github_last_synced_at AS "githubLastSyncedAt",
+         has_github_token      AS "hasGithubToken",
+         created_by            AS "createdBy",
+         created_at            AS "createdAt",
+         updated_at            AS "updatedAt",
          created_by_name          AS "createdByName",
          total_stages             AS "totalStages",
          done_stages              AS "doneStages",
@@ -65,13 +77,14 @@ export async function insert(
     githubRepo: string | null;
     githubUrl: string | null;
     githubDefaultBranch: string | null;
+    githubToken: string | null;
     createdBy: string;
   },
 ): Promise<Project> {
   const project = await queryOne<Project>(
     db,
-    `INSERT INTO projects (name, description, status, due_date, github_repo, github_url, github_default_branch, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO projects (name, description, status, due_date, github_repo, github_url, github_default_branch, github_token, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING ${PROJECT_COLUMNS}`,
     [
       row.name,
@@ -81,6 +94,7 @@ export async function insert(
       row.githubRepo,
       row.githubUrl,
       row.githubDefaultBranch,
+      row.githubToken,
       row.createdBy,
     ],
   );
@@ -95,6 +109,7 @@ export interface ProjectPatch {
   githubRepo?: string | null;
   githubUrl?: string | null;
   githubDefaultBranch?: string | null;
+  githubToken?: string | null;
 }
 
 export async function update(db: Queryable, id: string, patch: ProjectPatch): Promise<Project | null> {
@@ -108,6 +123,7 @@ export async function update(db: Queryable, id: string, patch: ProjectPatch): Pr
       githubRepo: 'github_repo',
       githubUrl: 'github_url',
       githubDefaultBranch: 'github_default_branch',
+      githubToken: 'github_token',
     },
     2,
   );
@@ -118,6 +134,15 @@ export async function update(db: Queryable, id: string, patch: ProjectPatch): Pr
     `UPDATE projects SET ${assignments.join(', ')} WHERE id = $1 RETURNING ${PROJECT_COLUMNS}`,
     [id, ...values],
   );
+}
+
+export async function findGitHubTokenById(db: Queryable, id: string): Promise<string | null> {
+  const row = await queryOne<{ githubToken: string | null }>(
+    db,
+    'SELECT github_token AS "githubToken" FROM projects WHERE id = $1',
+    [id],
+  );
+  return row?.githubToken ?? null;
 }
 
 export function findActiveByGitHubRepo(db: Queryable, fullName: string) {

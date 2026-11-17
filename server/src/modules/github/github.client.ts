@@ -144,3 +144,4 @@ export async function fetchRecentCommits(
     url: item.html_url ?? null,
   }));
 }
+

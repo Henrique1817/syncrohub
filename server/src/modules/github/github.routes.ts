@@ -8,3 +8,4 @@ githubWebhookRoutes.post('/webhooks/github', githubController.webhook);
 export const githubRoutes = Router();
 githubRoutes.post('/github/preview', engineerOnly, githubController.previewRepo);
 githubRoutes.post('/projects/:projectId/github/sync', engineerOnly, githubController.syncProject);
+

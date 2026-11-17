@@ -37,6 +37,7 @@ export async function createProject(user: AuthUser, input: CreateProjectInput) {
       githubRepo: input.githubRepo ?? null,
       githubUrl: input.githubUrl ?? null,
       githubDefaultBranch: input.githubDefaultBranch ?? null,
+      githubToken: input.githubToken ?? null,
       createdBy: user.id,
     });
     const stages = await stagesRepository.insertMany(tx, project.id, input.stages);

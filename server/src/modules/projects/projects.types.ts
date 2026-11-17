@@ -14,6 +14,7 @@ export interface Project {
   githubUrl: string | null;
   githubDefaultBranch: string | null;
   githubLastSyncedAt: Date | null;
+  hasGithubToken: boolean;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;

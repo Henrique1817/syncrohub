@@ -12,3 +12,4 @@ export const syncGitHubProjectSchema = z.object({
 
 export type PreviewGitHubRepoInput = z.infer<typeof previewGitHubRepoSchema>;
 export type SyncGitHubProjectInput = z.infer<typeof syncGitHubProjectSchema>;
+

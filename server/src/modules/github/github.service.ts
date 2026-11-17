@@ -117,7 +117,12 @@ export async function syncProjectFromGitHub(
     throw badRequest('Este projeto não está vinculado a um repositório GitHub.');
   }
 
-  const commits = await fetchRecentCommits(project.githubRepo, project.githubDefaultBranch, token);
+  const projectToken = await projectsRepository.findGitHubTokenById(pool, projectId);
+  const commits = await fetchRecentCommits(
+    project.githubRepo,
+    project.githubDefaultBranch,
+    token ?? projectToken ?? undefined,
+  );
   // Processa do mais antigo para o mais recente para respeitar a ordem cronológica dos commits.
   return applyCommitsToProject(project.id, project.githubRepo, [...commits].reverse(), user.id);
 }
@@ -190,3 +195,4 @@ export async function handleGitHubWebhook(
 
   return { ok: true, repository: fullName, projectsMatched: projects.length, results };
 }
+

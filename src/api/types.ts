@@ -128,6 +128,7 @@ export interface ProjectOverview {
   githubUrl: string | null;
   githubDefaultBranch: string | null;
   githubLastSyncedAt: string | null;
+  hasGithubToken: boolean;
   createdBy: string;
   createdByName: string;
   createdAt: string;
@@ -328,6 +329,7 @@ export interface CreateProjectInput {
   githubRepo?: string;
   githubUrl?: string;
   githubDefaultBranch?: string;
+  githubToken?: string;
   /** Etapas iniciais, na ordem de execução (máx. 50). */
   stages?: CreateStageInput[];
   /** Ativa a primeira etapa na mesma transação. */
@@ -342,6 +344,7 @@ export interface UpdateProjectInput {
   githubRepo?: string | null;
   githubUrl?: string | null;
   githubDefaultBranch?: string | null;
+  githubToken?: string | null;
 }
 
 export interface GitHubPreviewResult {

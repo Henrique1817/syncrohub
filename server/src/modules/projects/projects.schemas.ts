@@ -20,6 +20,7 @@ export const createProjectSchema = z.object({
   githubRepo: optionalText(200),
   githubUrl: optionalText(500),
   githubDefaultBranch: optionalText(100),
+  githubToken: optionalText(300),
   /** Etapas iniciais do roadmap, na ordem em que serão executadas. */
   stages: z.array(createStageSchema).max(50).default([]),
   /** Ativa a primeira etapa na mesma transação da criação. */
@@ -35,6 +36,7 @@ export const updateProjectSchema = z
     githubRepo: nullableText(200),
     githubUrl: nullableText(500),
     githubDefaultBranch: nullableText(100),
+    githubToken: nullableText(300),
   })
   .refine(hasAtLeastOneField, AT_LEAST_ONE_FIELD);
 

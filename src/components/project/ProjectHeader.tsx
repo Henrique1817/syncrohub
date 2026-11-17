@@ -121,34 +121,34 @@ export function ProjectHeader({ project, selectedStageId, onSelectStage }: Proje
             </p>
           </div>
           {!project.archivedAt && (
-          <div className="flex gap-2">
-            {isEngineer ? (
-              <>
-                <Button variant="secondary" size="sm" icon={Pencil} onClick={() => openProjectForm(project.id)}>
-                  Editar
-                </Button>
-                <Button
-                  size="sm"
-                  icon={Plus}
-                  className="flex-1"
-                  onClick={() => openModal('TASK', { projectId: project.id, stageId: selectedStageId })}
-                >
-                  Nova task
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="secondary" size="sm" icon={Lightbulb} className="flex-1" onClick={() => openModal('IDEA', { projectId: project.id })}>
-                  Ideia
-                </Button>
-                {canCreateTasks(role) && (
-                  <Button size="sm" icon={Plus} className="flex-1" onClick={() => openModal('TASK', { projectId: project.id })}>
-                    Adicionar demanda
+            <div className="flex gap-2">
+              {isEngineer ? (
+                <>
+                  <Button variant="secondary" size="sm" icon={Pencil} onClick={() => openProjectForm(project.id)}>
+                    Editar
                   </Button>
-                )}
-              </>
-            )}
-          </div>
+                  <Button
+                    size="sm"
+                    icon={Plus}
+                    className="flex-1"
+                    onClick={() => openModal('TASK', { projectId: project.id, stageId: selectedStageId })}
+                  >
+                    Nova task
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="secondary" size="sm" icon={Lightbulb} className="flex-1" onClick={() => openModal('IDEA', { projectId: project.id })}>
+                    Ideia
+                  </Button>
+                  {canCreateTasks(role) && (
+                    <Button size="sm" icon={Plus} className="flex-1" onClick={() => openModal('TASK', { projectId: project.id })}>
+                      Adicionar demanda
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
           )}
           {project.githubRepo ? (
             <div className="flex gap-2">

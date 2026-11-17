@@ -62,3 +62,4 @@ export function parseCommitDirectives(message: string): CommitTaskDirective[] {
 
   return directives;
 }
+
