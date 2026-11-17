@@ -1,5 +1,17 @@
 import { useState, type FormEvent } from 'react';
-import { AlertCircle, AlertTriangle, Archive, FolderPlus, GitBranch, Pencil, Save, X } from 'lucide-react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  Archive,
+  ChevronDown,
+  ExternalLink,
+  FolderPlus,
+  GitBranch,
+  HelpCircle,
+  Pencil,
+  Save,
+  X,
+} from 'lucide-react';
 import { getErrorMessage } from '../../api/client';
 import { PROJECT_STATUS_META } from '../../lib/constants';
 import { cn, pluralize } from '../../lib/utils';
@@ -70,6 +82,73 @@ function ErrorBanner({ error }: { error: unknown }) {
     <div role="alert" className="flex items-start gap-2 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">
       <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       {getErrorMessage(error)}
+    </div>
+  );
+}
+
+function GitHubTokenHelp() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mt-1.5">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-600 transition hover:text-zinc-900"
+      >
+        <HelpCircle className="h-3 w-3" />
+        Como gerar esse token no GitHub?
+        <ChevronDown className={cn('h-3 w-3 transition-transform', open && 'rotate-180')} />
+      </button>
+
+      {open && (
+        <div className="mt-2 space-y-2 rounded-md border border-zinc-200 bg-white p-2.5 text-[11px] leading-relaxed text-zinc-600">
+          <ol className="list-decimal space-y-1 pl-4">
+            <li>
+              No GitHub, acesse{' '}
+              <a
+                href="https://github.com/settings/personal-access-tokens/new"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-0.5 font-medium text-indigo-600 hover:underline"
+              >
+                Personal access tokens (Fine-grained)
+                <ExternalLink className="h-2.5 w-2.5" />
+              </a>{' '}
+              <span className="text-zinc-400">
+                (Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token)
+              </span>
+              .
+            </li>
+            <li>
+              Dê um nome (ex.: <code className="rounded bg-zinc-100 px-1">SyncroHub</code>) e defina a expiração.
+            </li>
+            <li>
+              Em <strong>Repository access</strong>, marque <strong>Only select repositories</strong> e escolha o
+              repositório privado.
+            </li>
+            <li>
+              Em <strong>Permissions → Repository permissions</strong>, altere <strong>Contents</strong> para{' '}
+              <strong>Read-only</strong> (<em>Metadata</em> já vem marcado).
+            </li>
+            <li>
+              Clique em <strong>Generate token</strong> e cole aqui a chave gerada (<code className="rounded bg-zinc-100 px-1">github_pat_...</code>).
+            </li>
+          </ol>
+          <p className="border-t border-zinc-100 pt-1.5 text-[10px] text-zinc-400">
+            Alternativa (Classic token): gere em{' '}
+            <a
+              href="https://github.com/settings/tokens/new"
+              target="_blank"
+              rel="noreferrer"
+              className="text-indigo-600 hover:underline"
+            >
+              github.com/settings/tokens/new
+            </a>{' '}
+            marcando o escopo <code className="rounded bg-zinc-100 px-1 text-zinc-600">repo</code>.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -194,6 +273,7 @@ function CreateProjectForm() {
             placeholder="Token GitHub (PAT) — opcional, apenas para repositórios privados"
             className={cn(inputClass, 'mt-2 text-xs')}
           />
+          <GitHubTokenHelp />
           <p className="mt-1.5 text-[11px] text-zinc-500">
             Preenche nome, repositório e descrição (README) automaticamente.
           </p>
@@ -453,6 +533,7 @@ function EditProjectForm({ project }: { project: ProjectDetail }) {
             }
             className={cn(inputClass, 'mt-2 text-xs')}
           />
+          <GitHubTokenHelp />
           {githubRepo ? (
             <p className="mt-1.5 text-[11px] text-emerald-700">
               Conectado a <span className="font-medium">{githubRepo}</span> ({githubDefaultBranch || 'main'})
