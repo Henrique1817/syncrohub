@@ -318,11 +318,41 @@ function EditProjectForm({ project }: { project: ProjectDetail }) {
   const close = useUI((s) => s.closeProjectForm);
   const toast = useUI((s) => s.toast);
   const update = useUpdateProject(project.id);
+  const previewGitHub = usePreviewGitHubRepo();
 
   const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description ?? '');
   const [status, setStatus] = useState<ProjectStatus>(project.status);
   const [dueDate, setDueDate] = useState(project.dueDate ?? '');
+  const [repoInput, setRepoInput] = useState(project.githubRepo ?? '');
+  const [githubRepo, setGithubRepo] = useState(project.githubRepo ?? '');
+  const [githubUrl, setGithubUrl] = useState(project.githubUrl ?? '');
+  const [githubDefaultBranch, setGithubDefaultBranch] = useState(project.githubDefaultBranch ?? '');
+
+  const handleConnectGitHub = () => {
+    const trimmed = repoInput.trim();
+    if (!trimmed) return;
+    previewGitHub.mutate(
+      { repo: trimmed },
+      {
+        onSuccess: (repo) => {
+          setGithubRepo(repo.githubRepo);
+          setGithubUrl(repo.githubUrl);
+          setGithubDefaultBranch(repo.defaultBranch);
+          setRepoInput(repo.githubRepo);
+          if (!description.trim() && repo.description) setDescription(repo.description);
+          toast('Repositório encontrado', `${repo.githubRepo} (${repo.defaultBranch}). Salve para concluir.`);
+        },
+      },
+    );
+  };
+
+  const handleDisconnectGitHub = () => {
+    setGithubRepo('');
+    setGithubUrl('');
+    setGithubDefaultBranch('');
+    setRepoInput('');
+  };
 
   // PATCH exige ao menos um campo: enviamos só o que mudou.
   const patch = {
@@ -330,6 +360,11 @@ function EditProjectForm({ project }: { project: ProjectDetail }) {
     ...(description.trim() !== (project.description ?? '') && { description: description.trim() || null }),
     ...(status !== project.status && { status }),
     ...(dueDate !== (project.dueDate ?? '') && { dueDate: dueDate || null }),
+    ...(githubRepo !== (project.githubRepo ?? '') && { githubRepo: githubRepo || null }),
+    ...(githubUrl !== (project.githubUrl ?? '') && { githubUrl: githubUrl || null }),
+    ...(githubDefaultBranch !== (project.githubDefaultBranch ?? '') && {
+      githubDefaultBranch: githubDefaultBranch || null,
+    }),
   };
   const hasChanges = Object.keys(patch).length > 0;
   const canSubmit = name.trim().length >= 3 && hasChanges && !update.isPending;
@@ -351,6 +386,50 @@ function EditProjectForm({ project }: { project: ProjectDetail }) {
 
       <div className="space-y-5 px-5 py-5">
         {update.isError && <ErrorBanner error={update.error} />}
+        {previewGitHub.isError && <ErrorBanner error={previewGitHub.error} />}
+
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50/70 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-700">
+              <GitBranch className="h-3.5 w-3.5 text-zinc-500" />
+              Repositório GitHub
+            </span>
+            {githubRepo && (
+              <button
+                type="button"
+                onClick={handleDisconnectGitHub}
+                className="text-[11px] font-medium text-rose-600 hover:underline"
+              >
+                Desvincular
+              </button>
+            )}
+          </div>
+          <div className="mt-2 flex gap-2">
+            <input
+              value={repoInput}
+              onChange={(e) => setRepoInput(e.target.value)}
+              placeholder="usuario/repositorio ou https://github.com/usuario/repositorio"
+              className={inputClass}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!repoInput.trim() || previewGitHub.isPending}
+              onClick={handleConnectGitHub}
+            >
+              {previewGitHub.isPending ? 'Buscando…' : githubRepo ? 'Trocar' : 'Conectar'}
+            </Button>
+          </div>
+          {githubRepo ? (
+            <p className="mt-1.5 text-[11px] text-emerald-700">
+              Conectado a <span className="font-medium">{githubRepo}</span> ({githubDefaultBranch || 'main'})
+            </p>
+          ) : (
+            <p className="mt-1.5 text-[11px] text-zinc-500">
+              Conecte este projeto a um repositório para abrir no GitHub e avançar tarefas via commits.
+            </p>
+          )}
+        </div>
 
         <Field label="Nome do projeto" htmlFor="project-name">
           <input

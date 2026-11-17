@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   CalendarClock,
   CalendarDays,
+  ExternalLink,
   Flag,
   GitBranch,
   Lightbulb,
@@ -149,29 +150,49 @@ export function ProjectHeader({ project, selectedStageId, onSelectStage }: Proje
             )}
           </div>
           )}
-          {!project.archivedAt && isEngineer && project.githubRepo && (
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={RefreshCw}
-              disabled={syncGitHub.isPending}
-              className="w-full"
-              onClick={() =>
-                syncGitHub.mutate(undefined, {
-                  onSuccess: (res) => {
-                    toast(
-                      'GitHub sincronizado',
-                      res.updatedTasks.length > 0
-                        ? `${pluralize(res.updatedTasks.length, 'tarefa atualizada', 'tarefas atualizadas')} via commits.`
-                        : `${res.processedCommits} commits verificados; nenhuma nova mudança.`,
-                    );
-                  },
-                  onError: (err) => toast('Erro ao sincronizar GitHub', getErrorMessage(err)),
-                })
-              }
-            >
-              {syncGitHub.isPending ? 'Sincronizando…' : 'Sincronizar commits'}
-            </Button>
+          {project.githubRepo ? (
+            <div className="flex gap-2">
+              <a
+                href={project.githubUrl ?? `https://github.com/${project.githubRepo}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-xs transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950"
+              >
+                <GitBranch className="h-3.5 w-3.5" />
+                Abrir no GitHub
+                <ExternalLink className="h-3 w-3 text-zinc-400" />
+              </a>
+              {!project.archivedAt && isEngineer && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={RefreshCw}
+                  disabled={syncGitHub.isPending}
+                  onClick={() =>
+                    syncGitHub.mutate(undefined, {
+                      onSuccess: (res) => {
+                        toast(
+                          'GitHub sincronizado',
+                          res.updatedTasks.length > 0
+                            ? `${pluralize(res.updatedTasks.length, 'tarefa atualizada', 'tarefas atualizadas')} via commits.`
+                            : `${res.processedCommits} commits verificados; nenhuma nova mudança.`,
+                        );
+                      },
+                      onError: (err) => toast('Erro ao sincronizar GitHub', getErrorMessage(err)),
+                    })
+                  }
+                >
+                  {syncGitHub.isPending ? 'Sincronizando…' : 'Sincronizar'}
+                </Button>
+              )}
+            </div>
+          ) : (
+            !project.archivedAt &&
+            isEngineer && (
+              <Button variant="secondary" size="sm" icon={GitBranch} className="w-full" onClick={() => openProjectForm(project.id)}>
+                Conectar ao GitHub
+              </Button>
+            )
           )}
         </div>
       </div>
