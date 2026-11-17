@@ -1,8 +1,20 @@
 import type { ReactNode } from 'react';
-import { AlertTriangle, CalendarClock, CalendarDays, Flag, Lightbulb, Pencil, Plus } from 'lucide-react';
+import {
+  AlertTriangle,
+  CalendarClock,
+  CalendarDays,
+  Flag,
+  GitBranch,
+  Lightbulb,
+  Pencil,
+  Plus,
+  RefreshCw,
+} from 'lucide-react';
+import { getErrorMessage } from '../../api/client';
 import { PROJECT_STATUS_META } from '../../lib/constants';
 import { canCreateTasks } from '../../lib/permissions';
 import { cn, formatDate, isOverdue, pluralize } from '../../lib/utils';
+import { useSyncProjectGitHub } from '../../queries/projects';
 import { useCurrentUser } from '../../store/session';
 import { useUI } from '../../store/ui';
 import type { ProjectDetail } from '../../types';
@@ -32,6 +44,8 @@ export function ProjectHeader({ project, selectedStageId, onSelectStage }: Proje
   const isEngineer = role === 'ENGINEER';
   const openModal = useUI((s) => s.openModal);
   const openProjectForm = useUI((s) => s.openProjectForm);
+  const toast = useUI((s) => s.toast);
+  const syncGitHub = useSyncProjectGitHub(project.id);
   const status = PROJECT_STATUS_META[project.status];
   const hasOverdue = project.overdueStages > 0;
   const deliveryLate = project.status !== 'COMPLETED' && isOverdue(project.dueDate, project.status);
@@ -46,6 +60,17 @@ export function ProjectHeader({ project, selectedStageId, onSelectStage }: Proje
               <Badge tone="amber" icon={AlertTriangle}>
                 {pluralize(project.overdueStages, 'etapa atrasada', 'etapas atrasadas')}
               </Badge>
+            )}
+            {project.githubRepo && (
+              <a
+                href={project.githubUrl ?? `https://github.com/${project.githubRepo}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-100"
+              >
+                <GitBranch className="h-3 w-3 text-zinc-500" />
+                {project.githubRepo}
+              </a>
             )}
           </div>
           <h1 className="mt-2 text-xl font-semibold tracking-tight text-zinc-950 md:text-2xl">{project.name}</h1>
@@ -123,6 +148,30 @@ export function ProjectHeader({ project, selectedStageId, onSelectStage }: Proje
               </>
             )}
           </div>
+          )}
+          {!project.archivedAt && isEngineer && project.githubRepo && (
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={RefreshCw}
+              disabled={syncGitHub.isPending}
+              className="w-full"
+              onClick={() =>
+                syncGitHub.mutate(undefined, {
+                  onSuccess: (res) => {
+                    toast(
+                      'GitHub sincronizado',
+                      res.updatedTasks.length > 0
+                        ? `${pluralize(res.updatedTasks.length, 'tarefa atualizada', 'tarefas atualizadas')} via commits.`
+                        : `${res.processedCommits} commits verificados; nenhuma nova mudança.`,
+                    );
+                  },
+                  onError: (err) => toast('Erro ao sincronizar GitHub', getErrorMessage(err)),
+                })
+              }
+            >
+              {syncGitHub.isPending ? 'Sincronizando…' : 'Sincronizar commits'}
+            </Button>
           )}
         </div>
       </div>

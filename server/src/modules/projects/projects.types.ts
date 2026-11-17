@@ -10,6 +10,10 @@ export interface Project {
   /** 'YYYY-MM-DD' */
   dueDate: string | null;
   archivedAt: Date | null;
+  githubRepo: string | null;
+  githubUrl: string | null;
+  githubDefaultBranch: string | null;
+  githubLastSyncedAt: Date | null;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;

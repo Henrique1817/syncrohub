@@ -1,9 +1,15 @@
 import { useState, type FormEvent } from 'react';
-import { AlertCircle, AlertTriangle, Archive, FolderPlus, Pencil, Save, X } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Archive, FolderPlus, GitBranch, Pencil, Save, X } from 'lucide-react';
 import { getErrorMessage } from '../../api/client';
 import { PROJECT_STATUS_META } from '../../lib/constants';
 import { cn, pluralize } from '../../lib/utils';
-import { useArchiveProject, useCreateProject, useProject, useUpdateProject } from '../../queries/projects';
+import {
+  useArchiveProject,
+  useCreateProject,
+  usePreviewGitHubRepo,
+  useProject,
+  useUpdateProject,
+} from '../../queries/projects';
 import { useUI } from '../../store/ui';
 import type { ProjectDetail, ProjectStatus } from '../../types';
 import { Button } from '../ui/Button';
@@ -73,7 +79,12 @@ function CreateProjectForm() {
   const navigate = useUI((s) => s.navigate);
   const toast = useUI((s) => s.toast);
   const create = useCreateProject();
+  const previewGitHub = usePreviewGitHubRepo();
 
+  const [repoInput, setRepoInput] = useState('');
+  const [githubRepo, setGithubRepo] = useState('');
+  const [githubUrl, setGithubUrl] = useState('');
+  const [githubDefaultBranch, setGithubDefaultBranch] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<ProjectStatus>('PLANNING');
@@ -90,6 +101,24 @@ function CreateProjectForm() {
     if (checked && status === 'PLANNING') setStatus('IN_PROGRESS');
   };
 
+  const handleImportGitHub = () => {
+    const trimmed = repoInput.trim();
+    if (!trimmed) return;
+    previewGitHub.mutate(
+      { repo: trimmed },
+      {
+        onSuccess: (repo) => {
+          setName(repo.name);
+          if (repo.description) setDescription(repo.description);
+          setGithubRepo(repo.githubRepo);
+          setGithubUrl(repo.githubUrl);
+          setGithubDefaultBranch(repo.defaultBranch);
+          toast('Repositório importado', `${repo.githubRepo} (${repo.defaultBranch})`);
+        },
+      },
+    );
+  };
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
@@ -99,6 +128,9 @@ function CreateProjectForm() {
         description: description.trim() || undefined,
         status,
         dueDate: dueDate || undefined,
+        githubRepo: githubRepo || undefined,
+        githubUrl: githubUrl || undefined,
+        githubDefaultBranch: githubDefaultBranch || undefined,
         stages: stages.map((d) => ({
           title: d.title.trim(),
           description: d.description.trim() || undefined,
@@ -127,6 +159,36 @@ function CreateProjectForm() {
 
       <div className="space-y-5 px-5 py-5">
         {create.isError && <ErrorBanner error={create.error} />}
+        {previewGitHub.isError && <ErrorBanner error={previewGitHub.error} />}
+
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50/70 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-700">
+              <GitBranch className="h-3.5 w-3.5 text-zinc-500" />
+              Importar do GitHub (opcional)
+            </span>
+            {githubRepo && <span className="text-[11px] font-medium text-emerald-700">Vinculado: {githubRepo}</span>}
+          </div>
+          <div className="mt-2 flex gap-2">
+            <input
+              value={repoInput}
+              onChange={(e) => setRepoInput(e.target.value)}
+              placeholder="usuario/repositorio ou https://github.com/usuario/repositorio"
+              className={inputClass}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!repoInput.trim() || previewGitHub.isPending}
+              onClick={handleImportGitHub}
+            >
+              {previewGitHub.isPending ? 'Buscando…' : 'Buscar'}
+            </Button>
+          </div>
+          <p className="mt-1.5 text-[11px] text-zinc-500">
+            Preenche nome, repositório e descrição (README) automaticamente.
+          </p>
+        </div>
 
         <Field label="Nome do projeto" hint="Mínimo 3 caracteres" htmlFor="project-name">
           <input

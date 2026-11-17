@@ -38,6 +38,17 @@ const envSchema = z.object({
     .transform((value) => value?.trim() || undefined),
   EMAIL_FROM: z.string().min(3).default('SyncroHub <onboarding@resend.dev>'),
   INVITE_TTL_HOURS: z.coerce.number().int().positive().default(7 * 24),
+
+  /** Token opcional (PAT) para importar repositórios privados e aumentar rate limit do GitHub. */
+  GITHUB_TOKEN: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
+  /** Secret opcional configurado no webhook do repositório GitHub para validar X-Hub-Signature-256. */
+  GITHUB_WEBHOOK_SECRET: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
 });
 
 const parsed = envSchema.safeParse(process.env);

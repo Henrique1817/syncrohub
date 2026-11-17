@@ -33,8 +33,14 @@ export function TaskCard({ task, overlay }: TaskCardProps) {
         overlay && 'rotate-[1.5deg] shadow-xl ring-2 ring-indigo-500/20',
       )}
     >
-      {(fromManager || showPriority) && (
+      {(fromManager || showPriority || true) && (
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
+          <span
+            title="ID curto para referenciar em commits (ex: wip #id ou done #id)"
+            className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-zinc-500"
+          >
+            #{task.id.slice(0, 8)}
+          </span>
           <SourceBadge task={task} />
           {showPriority && <Badge tone={PRIORITY_META[task.priority].tone}>{PRIORITY_META[task.priority].label}</Badge>}
         </div>

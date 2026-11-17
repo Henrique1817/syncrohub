@@ -9,6 +9,8 @@ import type {
   CreateStageInput,
   CreateTaskInput,
   CursorPage,
+  GitHubPreviewResult,
+  GitHubSyncResult,
   Idea,
   InvitationPreview,
   InvitationResult,
@@ -72,6 +74,16 @@ export const projectsApi = {
   archive: (projectId: string) => apiData<ProjectDetail>(`/projects/${projectId}/archive`, { method: 'POST' }),
   restore: (projectId: string) => apiData<ProjectDetail>(`/projects/${projectId}/restore`, { method: 'POST' }),
   remove: (projectId: string) => apiRequest<void>(`/projects/${projectId}`, { method: 'DELETE' }),
+};
+
+export const githubApi = {
+  preview: (repo: string, token?: string) =>
+    apiData<GitHubPreviewResult>('/github/preview', { method: 'POST', body: { repo, token: token || undefined } }),
+  syncProject: (projectId: string, token?: string) =>
+    apiData<GitHubSyncResult>(`/projects/${projectId}/github/sync`, {
+      method: 'POST',
+      body: { token: token || undefined },
+    }),
 };
 
 export const stagesApi = {

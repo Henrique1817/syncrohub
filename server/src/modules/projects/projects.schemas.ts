@@ -17,6 +17,9 @@ export const createProjectSchema = z.object({
   description: optionalText(5000),
   status: z.enum(PROJECT_STATUSES).default('PLANNING'),
   dueDate: z.iso.date().optional(),
+  githubRepo: optionalText(200),
+  githubUrl: optionalText(500),
+  githubDefaultBranch: optionalText(100),
   /** Etapas iniciais do roadmap, na ordem em que serão executadas. */
   stages: z.array(createStageSchema).max(50).default([]),
   /** Ativa a primeira etapa na mesma transação da criação. */
@@ -29,6 +32,9 @@ export const updateProjectSchema = z
     description: nullableText(5000),
     status: z.enum(PROJECT_STATUSES).optional(),
     dueDate: z.iso.date().nullable().optional(),
+    githubRepo: nullableText(200),
+    githubUrl: nullableText(500),
+    githubDefaultBranch: nullableText(100),
   })
   .refine(hasAtLeastOneField, AT_LEAST_ONE_FIELD);
 

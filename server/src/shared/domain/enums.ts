@@ -52,5 +52,6 @@ export const ACTIVITY_ACTIONS = [
   'IDEA_STATUS_CHANGED',
   'COMMENT_ADDED',
   'ENGINEER_UPDATE',
+  'GITHUB_COMMIT_APPLIED',
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];

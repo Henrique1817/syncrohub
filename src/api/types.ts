@@ -37,7 +37,8 @@ export type ActivityAction =
   | 'IDEA_APPROVED'
   | 'IDEA_STATUS_CHANGED'
   | 'COMMENT_ADDED'
-  | 'ENGINEER_UPDATE';
+  | 'ENGINEER_UPDATE'
+  | 'GITHUB_COMMIT_APPLIED';
 
 // ---------------------------------------------------------------------------
 // Envelopes
@@ -123,6 +124,10 @@ export interface ProjectOverview {
   /** Entrega prevista, 'YYYY-MM-DD'. */
   dueDate: string | null;
   archivedAt: string | null;
+  githubRepo: string | null;
+  githubUrl: string | null;
+  githubDefaultBranch: string | null;
+  githubLastSyncedAt: string | null;
   createdBy: string;
   createdByName: string;
   createdAt: string;
@@ -320,6 +325,9 @@ export interface CreateProjectInput {
   description?: string;
   status?: ProjectStatus;
   dueDate?: string;
+  githubRepo?: string;
+  githubUrl?: string;
+  githubDefaultBranch?: string;
   /** Etapas iniciais, na ordem de execução (máx. 50). */
   stages?: CreateStageInput[];
   /** Ativa a primeira etapa na mesma transação. */
@@ -331,6 +339,33 @@ export interface UpdateProjectInput {
   description?: string | null;
   status?: ProjectStatus;
   dueDate?: string | null;
+  githubRepo?: string | null;
+  githubUrl?: string | null;
+  githubDefaultBranch?: string | null;
+}
+
+export interface GitHubPreviewResult {
+  name: string;
+  githubRepo: string;
+  githubUrl: string;
+  defaultBranch: string;
+  description: string | null;
+}
+
+export interface GitHubSyncTaskUpdate {
+  taskId: string;
+  taskTitle: string;
+  from: TaskStatus;
+  to: TaskStatus;
+  commitSha: string;
+  commitMessage: string;
+}
+
+export interface GitHubSyncResult {
+  projectId: string;
+  githubRepo: string;
+  processedCommits: number;
+  updatedTasks: GitHubSyncTaskUpdate[];
 }
 
 export interface CreateIdeaInput {

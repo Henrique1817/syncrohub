@@ -16,7 +16,14 @@ export function createApp() {
 
   app.use(helmet());
   app.use(cors({ origin: env.CORS_ORIGINS }));
-  app.use(express.json({ limit: '100kb' }));
+  app.use(
+    express.json({
+      limit: '500kb',
+      verify: (req, _res, buf) => {
+        (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
+      },
+    }),
+  );
   app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => req.url === '/health' } }));
 
   app.get('/health', async (_req, res) => {

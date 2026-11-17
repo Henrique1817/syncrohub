@@ -7,7 +7,7 @@ import {
   type QueryKey,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import { projectsApi, usersApi } from '../api/endpoints';
+import { githubApi, projectsApi, usersApi } from '../api/endpoints';
 import type { CreateProjectInput, ProjectDetail, UpdateProjectInput, UserRole } from '../api/types';
 import { queryKeys } from './keys';
 
@@ -113,6 +113,28 @@ export function useDeleteProject(projectId: string) {
       queryClient.removeQueries({ queryKey: queryKeys.projects.detail(projectId) });
       queryClient.removeQueries({ queryKey: queryKeys.tasks.byProject(projectId) });
     },
+    onSettled: invalidate,
+    meta: { silentError: true },
+  });
+}
+
+export function usePreviewGitHubRepo() {
+  return useMutation({
+    mutationFn: ({ repo, token }: { repo: string; token?: string }) => githubApi.preview(repo, token),
+    meta: { silentError: true },
+  });
+}
+
+export function useSyncProjectGitHub(projectId: string) {
+  const invalidate = useInvalidate([
+    queryKeys.projects.detail(projectId),
+    queryKeys.projects.all,
+    queryKeys.tasks.byProject(projectId),
+    queryKeys.activity.all,
+  ]);
+
+  return useMutation({
+    mutationFn: (token?: string) => githubApi.syncProject(projectId, token),
     onSettled: invalidate,
     meta: { silentError: true },
   });

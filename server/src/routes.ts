@@ -3,6 +3,7 @@ import { authenticate } from './middlewares/authenticate.js';
 import { activityRoutes } from './modules/activity/activity.routes.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { commentsRoutes } from './modules/comments/comments.routes.js';
+import { githubRoutes, githubWebhookRoutes } from './modules/github/github.routes.js';
 import { ideasRoutes } from './modules/ideas/ideas.routes.js';
 import { projectsRoutes } from './modules/projects/projects.routes.js';
 import { stagesRoutes } from './modules/stages/stages.routes.js';
@@ -14,11 +15,13 @@ export const apiRouter = Router();
 
 apiRouter.use(authRoutes);
 apiRouter.use(invitationRoutes);
+apiRouter.use(githubWebhookRoutes);
 
 apiRouter.use(authenticate);
 apiRouter.use(usersRoutes);
 apiRouter.use(teamRoutes);
 apiRouter.use(projectsRoutes);
+apiRouter.use(githubRoutes);
 apiRouter.use(stagesRoutes);
 apiRouter.use(tasksRoutes);
 apiRouter.use(ideasRoutes);
